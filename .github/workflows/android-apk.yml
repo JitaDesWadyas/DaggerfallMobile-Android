@@ -8,43 +8,45 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
-      - name: Extract source archive
+      - name: Unpack Android source
         shell: bash
         run: |
           set -euo pipefail
-          if [ -f DaggerfallMobile-GitHubActions-input-test-v5.zip ]; then
-            python3 - <<'PY'
-          import zipfile
-          from pathlib import Path
-          archive = Path("DaggerfallMobile-GitHubActions-input-test-v5.zip")
-          with zipfile.ZipFile(archive) as z:
-              for info in z.infolist():
-                  target = Path(info.filename)
-                  if target.is_absolute() or ".." in target.parts:
-                      raise SystemExit(f"Unsafe ZIP member: {info.filename}")
-              z.extractall(".")
-          PY
-          fi
-          test -f settings.gradle || { echo 'Missing Android source ZIP in repository root'; exit 1; }
+          unzip -o -q DaggerfallMobile-GitHubActions-input-test-v5.zip -d .
+          test -f settings.gradle
+          test -f gradlew
+          test -f app/build.gradle
+          chmod +x gradlew
+          echo 'Android source extracted successfully'
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
       - uses: android-actions/setup-android@v3
-      - name: Install Android SDK
+      - name: Install SDK
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0' 'platform-tools'
       - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.10.2'
       - name: JavaScript tests
         run: node --test tests/*.test.cjs
-      - name: Build APK
-        run: gradle --no-daemon assembleDebug
-      - uses: actions/upload-artifact@v4
+      - name: Build debug APK
+        shell: bash
+        run: |
+          set -o pipefail
+          bash ./gradlew --no-daemon --stacktrace assembleDebug 2>&1 | tee android-build.log
+      - name: Upload debug APK
+        if: success()
+        uses: actions/upload-artifact@v4
         with:
           name: DaggerfallMobile-debug-apk
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build-log
+          path: android-build.log
+          if-no-files-found: ignore

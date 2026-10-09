@@ -25,6 +25,10 @@ jobs:
           python3 patches/android-v11.py
           python3 patches/android-v12.py
           python3 patches/android-v13.py
+          # Gameplay hot path: frame-coalesced touch IPC and cached gamepad objects.
+          cp patches/gamepad-v14.js app/src/main/assets/gamepad.js
+          python3 patches/login-performance-v14.py
+          python3 patches/android-performance-v14.py
           mkdir -p tests
           cp patches/login-fix-v6.test.cjs tests/login-fix-v6.test.cjs
           chmod +x gradlew
@@ -51,6 +55,16 @@ jobs:
           grep -q 'refreshKeycaps()' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
           grep -q 'HapticFeedbackConstants.KEYBOARD_TAP' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
           grep -q 'isFocusable=false' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
+      - name: Verify gameplay performance optimizations
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'Choreographer.getInstance().postFrameCallback' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
+          grep -q 'packet!=lastPacket' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
+          grep -q 'accountChanged(records)' app/src/main/assets/login-fix.js
+          grep -q 'nextScan=now+' app/src/main/assets/gamepad.js
+          node --check app/src/main/assets/gamepad.js
+          node --check app/src/main/assets/login-fix.js
       - name: JavaScript tests
         run: |
           node --check app/src/main/assets/login-fix.js

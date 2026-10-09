@@ -19,6 +19,9 @@ jobs:
           test -f settings.gradle
           test -f gradlew
           test -f app/build.gradle
+          cp patches/login-fix-v6.js app/src/main/assets/login-fix.js
+          mkdir -p tests
+          cp patches/login-fix-v6.test.cjs tests/login-fix-v6.test.cjs
           chmod +x gradlew
           echo 'Android source extracted successfully'
       - uses: actions/setup-java@v4
@@ -30,7 +33,7 @@ jobs:
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0' 'platform-tools'
       - uses: gradle/actions/setup-gradle@v4
       - name: JavaScript tests
-        run: node --test tests/*.test.cjs
+        run: node --test tests/gamepad-shim.test.cjs tests/login-fix-v6.test.cjs
       - name: Build debug APK
         shell: bash
         run: |

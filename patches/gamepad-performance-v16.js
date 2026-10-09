@@ -1,3 +1,4 @@
+try{
 (()=>{
  if(window.__dfPad)return;
  const original=navigator.getGamepads?.bind(navigator);
@@ -58,3 +59,5 @@
   if(frames)for(const f of frames)try{f.contentWindow?.postMessage({dfMobileState:state},'https://daggerfalljs.dev')}catch{}
  };
 })();
+
+}catch(e){try{console.warn('Daggerfall Mobile: virtual controller unavailable',e)}catch(_){}}

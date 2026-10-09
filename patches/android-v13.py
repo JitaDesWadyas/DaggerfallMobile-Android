@@ -56,7 +56,7 @@ s=s.replace('''     setOnClickListener{insertKey(key);updateSelection()}''',''' 
        else->if(active===pass||active===confirm)"PASSWORD  •  "+active.length()+" characters" else "TYPING  •  "+names[fields.indexOf(active).coerceAtLeast(0)]
       }
      }''',1)
-s=s.replace('''    keyRow.addView(btn,LinearLayout.LayoutParams(0,46.dp,''','''    keyRow.addView(btn,LinearLayout.LayoutParams(0,if(resources.displayMetrics.heightPixels<750.dp)38.dp else 44.dp,''',1)
+s=s.replace('''    keyRow.addView(btn,LinearLayout.LayoutParams(0,46.dp,''','''    keyRow.addView(btn,LinearLayout.LayoutParams(0,if(resources.configuration.orientation==android.content.res.Configuration.ORIENTATION_LANDSCAPE)29.dp else if(resources.displayMetrics.heightPixels<750.dp)36.dp else 43.dp,''',1)
 s=s.replace('''   body.addView(keyRow)''','''   keyboardHost.addView(keyRow)''',1)
 s=s.replace('''  // Paste using the Android clipboard, without showing the IME.
   row(body,"Paste" to {''','''  refreshKeycaps()

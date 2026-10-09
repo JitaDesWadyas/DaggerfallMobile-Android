@@ -58,7 +58,7 @@ s=s.replace('''     setOnClickListener{insertKey(key);updateSelection()}''',''' 
        "SYM"->if(symbolMode)"SYMBOLS  •  tap ABC to return" else "LETTERS  •  tap 123# for symbols"
        "NEXT"->"EDITING  •  "+names[fields.indexOf(active).coerceAtLeast(0)]
        "BACK"->"BACKSPACE  •  character removed"
-       else->if(active===pass||active===confirm)"PASSWORD  •  "+active.length()+" characters" else "TYPING  •  "+names[fields.indexOf(active).coerceAtLeast(0)]
+       else->if(active===pass||active===confirm)"PASSWORD  •  "+active.length()+" characters" else "PRESSED  •  "+(if(key=="SPACE")"Space" else if(symbolMode&&key.length==1)symbolMap[key[0]]?.toString()?:key else if(upper)key.uppercase() else key)
       }
      }''',1)
 s=s.replace('''    keyRow.addView(btn,LinearLayout.LayoutParams(0,46.dp,''','''    keyRow.addView(btn,LinearLayout.LayoutParams(0,if(resources.configuration.orientation==android.content.res.Configuration.ORIENTATION_LANDSCAPE)29.dp else if(resources.displayMetrics.heightPixels<750.dp)36.dp else 43.dp,''',1)

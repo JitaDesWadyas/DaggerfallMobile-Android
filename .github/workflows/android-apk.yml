@@ -28,6 +28,7 @@ jobs:
           python3 patches/android-v13.py
           python3 patches/android-v15-recovery.py
           python3 patches/android-menu-v17.py
+          python3 patches/android-safe-performance-v18.py
           mkdir -p tests
           cp patches/login-fix-v6.test.cjs tests/login-fix-v6.test.cjs
           chmod +x gradlew
@@ -64,6 +65,16 @@ jobs:
           grep -Fq 'menu_button_position' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
           grep -Fq 'override fun onBackPressed()' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
           grep -Fq 'showAccountEntry(stage:String)' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
+      - name: Verify safe performance patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile patches/android-safe-performance-v18.py
+          grep -Fq 'postOnAnimation(emitInputFrame)' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
+          grep -Fq 'optimized_input_enabled' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
+          ! grep -Fq 'Choreographer.FrameCallback' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
+          ! grep -Fq 'gamepad-performance-v16' .github/workflows/android-apk.yml
+          grep -Fq 'isFocusable=false;isFocusableInTouchMode=false' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
       - name: Check release signing
         shell: bash
         env:

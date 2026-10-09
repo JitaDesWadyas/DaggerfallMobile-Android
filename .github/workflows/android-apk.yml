@@ -30,6 +30,7 @@ jobs:
           # v16 performance: strictly additive over the verified v15 baseline.
           cp patches/gamepad-performance-v16.js app/src/main/assets/gamepad.js
           python3 patches/android-performance-v16.py
+          python3 patches/android-performance-test-v16.py
           cp patches/gamepad-performance-v16.test.cjs tests/gamepad-performance-v16.test.cjs
           mkdir -p tests
           cp patches/login-fix-v6.test.cjs tests/login-fix-v6.test.cjs
@@ -56,13 +57,14 @@ jobs:
           grep -q 'keyboardHost.addView(keyRow)' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
           test -f app/src/main/res/drawable/ic_launcher.xml
           node --check app/src/main/assets/login-fix.js
+          grep -Fq 'fun measureWebViewFrames()' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
           node --check app/src/main/assets/gamepad.js
           node --test tests/gamepad-shim.test.cjs tests/login-fix-v6.test.cjs
       - name: Verify v16 performance without changing login
         shell: bash
         run: |
           set -euo pipefail
-          python3 -m py_compile patches/android-performance-v16.py
+          python3 -m py_compile patches/android-performance-v16.py patches/android-performance-test-v16.py
           grep -Fq 'Choreographer.getInstance().postFrameCallback(deliverFrame)' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
           grep -Fq 'axes.contentEquals(lastAxes)' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
           grep -Fq 'buttons.contentEquals(lastButtons)' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt

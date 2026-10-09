@@ -39,7 +39,7 @@ s=s.replace('''    "NEXT"->{val index=fields.indexOf(e);pick(fields[(index+1)%fi
      if(txt.isNotEmpty())e.text.append(txt)
     }
     "NEXT"->{val index=fields.indexOf(e);pick(fields[(index+1)%fields.size])}''',1)
-s=s.replace('''    else->{val value=when(key){"SPACE"->" ";else->if(upper)key.uppercase() else key}''','''    else->{val value=when(key){"SPACE"->" ";else->if(symbolMode&&key.length==1)symbolMap[key[0]]?.toString()?:key else if(upper)key.uppercase() else key}''',1)
+s=s.replace('''    else->{val value=when(key){"SPACE"->" ";else->if(upper)key.uppercase() else key}''','''    else->{val value=when(key){"SPACE"->" ";else->if(symbolMode&&key.length==1)(symbolMap[key[0]]?.toString() ?: key) else if(upper)key.uppercase() else key}''',1)
 s=s.replace('''     setOnClickListener{insertKey(key);updateSelection()}''','''     isFocusable=false;isFocusableInTouchMode=false
      // Native pressed-state tint + haptic feedback, with no input focus.
      val normal=if(key=="NEXT")Color.rgb(23,112,99) else if(key=="BACK"||key=="SHIFT"||key=="SYM")Color.rgb(62,75,94) else Color.rgb(35,47,64)

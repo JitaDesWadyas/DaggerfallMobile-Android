@@ -17,8 +17,11 @@ replacement='''  var active:EditText=user
   val entryButtons=mutableListOf<Button>()
   fun updateSelection(){
    val idx=fields.indexOf(active).coerceAtLeast(0)
-   selected.text="● Editing: \${names[idx]}  •  \${idx+1} of \${fields.size}"
-   progress.text=fields.mapIndexed{ i,e -> "\${names[i]}: \${if(e.length()>0)if(i==0)e.text.toString() else "•".repeat(e.length().coerceAtMost(24)) else "empty"}" }.joinToString("    |    ")
+   selected.text="● Editing: ${names[idx]}  •  ${idx+1} of ${fields.size}"
+   progress.text=fields.mapIndexed { i,e ->
+    val value=if(e.length()==0)"empty" else if(i==0)e.text.toString() else "•".repeat(e.length().coerceAtMost(24))
+    "${names[i]}: ${value}"
+   }.joinToString("    |    ")
    for((i,e) in fields.withIndex()){
     e.background=surface(if(e===active)activeColor else inactiveColor)
     e.setTextColor(Color.WHITE)
@@ -82,7 +85,7 @@ s=s.replace('''    web.evaluateJavascript("window.__dfLoginFix?.submitNative("+J
        if(!d.isShowing)return
        web.evaluateJavascript("window.__dfLoginFix?.accountStatus?.()"){raw->
         try{
-         val msg=JSONTokener(raw).nextValue() as? String ?: ""
+         val msg=org.json.JSONTokener(raw).nextValue() as? String ?: ""
          if(msg.isNotBlank())status.text=msg
          else if(remaining>0)web.postDelayed({poll(remaining-1)},600)
         }catch(_:Exception){if(remaining>0)web.postDelayed({poll(remaining-1)},600)}

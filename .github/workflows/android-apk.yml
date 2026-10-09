@@ -22,6 +22,7 @@ jobs:
           cp patches/login-fix-v9.js app/src/main/assets/login-fix.js
           python3 patches/android-v9.py
           python3 patches/android-v10.py
+          python3 patches/android-v11.py
           mkdir -p tests
           cp patches/login-fix-v6.test.cjs tests/login-fix-v6.test.cjs
           chmod +x gradlew

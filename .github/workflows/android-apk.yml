@@ -19,7 +19,8 @@ jobs:
           test -f settings.gradle
           test -f gradlew
           test -f app/build.gradle
-          cp patches/login-fix-v6.js app/src/main/assets/login-fix.js
+          cp patches/login-fix-v7.js app/src/main/assets/login-fix.js
+          python3 patches/android-v7.py
           mkdir -p tests
           cp patches/login-fix-v6.test.cjs tests/login-fix-v6.test.cjs
           chmod +x gradlew

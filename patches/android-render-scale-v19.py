@@ -17,12 +17,14 @@ helper=''' // Native DaggerfallJS render scale. No injected rendering patches or
   return "https://daggerfalljs.dev/?renderscale="+selected
  }
  fun changeRenderScale(value:String){
-  prefs.edit().putString("render_scale",value).apply()
   AlertDialog.Builder(this)
    .setTitle("Rendering resolution")
    .setMessage("Apply "+value+" scale? This reloads DaggerfallJS. Save your game first.")
-   .setPositiveButton("Reload"){_,_->web.loadUrl(gameUrl())}
-   .setNegativeButton("Later",null).show()
+   .setPositiveButton("Reload"){_,_->
+    prefs.edit().putString("render_scale",value).apply()
+    web.loadUrl(gameUrl())
+   }
+   .setNegativeButton("Cancel",null).show()
  }
 '''
 s=s.replace(anchor,helper+anchor,1)

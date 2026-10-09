@@ -19,7 +19,7 @@ jobs:
           test -f settings.gradle
           test -f gradlew
           test -f app/build.gradle
-          # Verified v15 startup baseline. Do not load experimental v14 renderer hooks.
+          # Restore user-verified v15 baseline. No experimental v14/v16 performance hooks.
           cp patches/login-fix-v12.js app/src/main/assets/login-fix.js
           python3 patches/android-v9.py
           python3 patches/android-v10.py
@@ -27,11 +27,7 @@ jobs:
           python3 patches/android-v12.py
           python3 patches/android-v13.py
           python3 patches/android-v15-recovery.py
-          # v16 performance: strictly additive over the verified v15 baseline.
-          cp patches/gamepad-performance-v16.js app/src/main/assets/gamepad.js
-          python3 patches/android-performance-v16.py
-          python3 patches/android-performance-test-v16.py
-          cp patches/gamepad-performance-v16.test.cjs tests/gamepad-performance-v16.test.cjs
+          python3 patches/android-menu-v17.py
           mkdir -p tests
           cp patches/login-fix-v6.test.cjs tests/login-fix-v6.test.cjs
           chmod +x gradlew
@@ -57,20 +53,17 @@ jobs:
           grep -q 'keyboardHost.addView(keyRow)' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
           test -f app/src/main/res/drawable/ic_launcher.xml
           node --check app/src/main/assets/login-fix.js
-          grep -Fq 'fun measureWebViewFrames()' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
           node --check app/src/main/assets/gamepad.js
           node --test tests/gamepad-shim.test.cjs tests/login-fix-v6.test.cjs
-      - name: Verify v16 performance without changing login
+      - name: Verify menu controls and working login
         shell: bash
         run: |
           set -euo pipefail
-          python3 -m py_compile patches/android-performance-v16.py patches/android-performance-test-v16.py
-          grep -Fq 'Choreographer.getInstance().postFrameCallback(deliverFrame)' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
-          grep -Fq 'axes.contentEquals(lastAxes)' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
-          grep -Fq 'buttons.contentEquals(lastButtons)' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
-          grep -Fq 'isFocusable=false;isFocusableInTouchMode=false' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
-          node --check app/src/main/assets/gamepad.js
-          node --test tests/gamepad-performance-v16.test.cjs
+          python3 -m py_compile patches/android-menu-v17.py
+          grep -Fq 'applyMenuButtonPosition()' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
+          grep -Fq 'menu_button_position' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
+          grep -Fq 'override fun onBackPressed()' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
+          grep -Fq 'showAccountEntry(stage:String)' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
       - name: Check release signing
         shell: bash
         env:

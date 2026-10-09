@@ -19,7 +19,7 @@ jobs:
           test -f settings.gradle
           test -f gradlew
           test -f app/build.gradle
-          # Known working baseline: v13. Do not load v14 WebView/gamepad optimizations.
+          # Verified v15 startup baseline. Do not load experimental v14 renderer hooks.
           cp patches/login-fix-v12.js app/src/main/assets/login-fix.js
           python3 patches/android-v9.py
           python3 patches/android-v10.py
@@ -27,6 +27,10 @@ jobs:
           python3 patches/android-v12.py
           python3 patches/android-v13.py
           python3 patches/android-v15-recovery.py
+          # v16 performance: strictly additive over the verified v15 baseline.
+          cp patches/gamepad-performance-v16.js app/src/main/assets/gamepad.js
+          python3 patches/android-performance-v16.py
+          cp patches/gamepad-performance-v16.test.cjs tests/gamepad-performance-v16.test.cjs
           mkdir -p tests
           cp patches/login-fix-v6.test.cjs tests/login-fix-v6.test.cjs
           chmod +x gradlew
@@ -54,6 +58,17 @@ jobs:
           node --check app/src/main/assets/login-fix.js
           node --check app/src/main/assets/gamepad.js
           node --test tests/gamepad-shim.test.cjs tests/login-fix-v6.test.cjs
+      - name: Verify v16 performance without changing login
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile patches/android-performance-v16.py
+          grep -Fq 'Choreographer.getInstance().postFrameCallback(deliverFrame)' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
+          grep -Fq 'axes.contentEquals(lastAxes)' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
+          grep -Fq 'buttons.contentEquals(lastButtons)' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
+          grep -Fq 'isFocusable=false;isFocusableInTouchMode=false' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
+          node --check app/src/main/assets/gamepad.js
+          node --test tests/gamepad-performance-v16.test.cjs
       - name: Check release signing
         shell: bash
         env:

@@ -29,6 +29,7 @@ jobs:
           python3 patches/android-v15-recovery.py
           python3 patches/android-menu-v17.py
           python3 patches/android-safe-performance-v18.py
+          python3 patches/android-render-scale-v19.py
           mkdir -p tests
           cp patches/login-fix-v6.test.cjs tests/login-fix-v6.test.cjs
           chmod +x gradlew
@@ -75,6 +76,15 @@ jobs:
           ! grep -Fq 'Choreographer.FrameCallback' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
           ! grep -Fq 'gamepad-performance-v16' .github/workflows/android-apk.yml
           grep -Fq 'isFocusable=false;isFocusableInTouchMode=false' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
+      - name: Verify actual DaggerfallJS render-scale integration
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile patches/android-render-scale-v19.py
+          grep -Fq 'web.loadUrl(gameUrl())' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
+          grep -Fq 'renderscale=' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
+          grep -Fq 'changeRenderScale("0.5")' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
+          grep -Fq 'showAccountEntry(stage:String)' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
       - name: Check release signing
         shell: bash
         env:

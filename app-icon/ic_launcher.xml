@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+  <!-- Fantasy mobile client monogram: dark field, bronze border, ruby D and blade -->
+  <path android:fillColor="#121522" android:pathData="M0,0 L108,0 L108,108 L0,108 Z"/>
+  <path android:fillColor="#4A2A24" android:pathData="M14,4 L94,4 Q104,4 104,14 L104,94 Q104,104 94,104 L14,104 Q4,104 4,94 L4,14 Q4,4 14,4 Z"/>
+  <path android:fillColor="#CE9352" android:pathData="M14,6 L94,6 Q102,6 102,14 L102,94 Q102,102 94,102 L14,102 Q6,102 6,94 L6,14 Q6,6 14,6 Z"/>
+  <path android:fillColor="#141622" android:pathData="M15,10 L93,10 Q98,10 98,15 L98,93 Q98,98 93,98 L15,98 Q10,98 10,93 L10,15 Q10,10 15,10 Z"/>
+  <path android:fillColor="#27151D" android:pathData="M13,71 L45,43 L59,57 L94,25 L94,94 L13,94 Z"/>
+  <path android:fillColor="#4C1421" android:pathData="M15,26 L49,26 C79,26 92,42 92,56 C92,75 76,87 49,87 L15,87 Z"/>
+  <path android:fillColor="#B56B3E" android:fillType="evenOdd" android:pathData="M18,22 L48,22 C76,22 91,37 91,55 C91,75 75,89 48,89 L18,89 Z M37,40 L37,72 L49,72 C62,72 72,65 72,55 C72,45 62,40 49,40 Z"/>
+  <path android:fillColor="#E7BC74" android:pathData="M19,25 L48,25 C74,25 87,40 87,55 C87,73 71,85 48,85 L19,85 L22,81 L47,81 C69,81 82,69 82,55 C82,41 69,29 47,29 L23,29 Z"/>
+  <path android:fillColor="#9D1122" android:pathData="M21,32 L47,32 C68,32 79,44 79,55 C79,69 66,78 47,78 L21,78 Z"/>
+  <path android:fillColor="#101521" android:pathData="M37,40 L50,40 C63,40 72,46 72,55 C72,64 62,71 50,71 L37,71 Z"/>
+  <!-- Sword becomes the central stem of the D -->
+  <path android:fillColor="#E8CB92" android:pathData="M28,16 L33,16 L33,78 L30.5,94 L28,78 Z"/>
+  <path android:fillColor="#B27743" android:pathData="M32,18 L34,18 L34,80 L30.5,96 L30.5,78 Z"/>
+  <path android:fillColor="#F5D48B" android:pathData="M21,30 L40,30 L44,34 L17,34 Z"/>
+  <path android:fillColor="#D9A656" android:pathData="M26,14 L36,14 L34,19 L28,19 Z"/>
+  <path android:fillColor="#B22428" android:pathData="M30.5,8 L35,12.5 L30.5,17 L26,12.5 Z"/>
+  <path android:fillColor="#FFB250" android:pathData="M31,10 L33,12.5 L31,15 L29,12.5 Z"/>
+  <path android:strokeColor="#E6B66D" android:strokeWidth="1.4" android:fillColor="#00000000"
+      android:pathData="M15,11 L93,11 Q97,11 97,15 L97,93 Q97,97 93,97 L15,97 Q11,97 11,93 L11,15 Q11,11 15,11 Z"/>
+</vector>

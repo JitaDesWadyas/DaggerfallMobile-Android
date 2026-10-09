@@ -11,77 +11,105 @@ jobs:
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
-      - name: Unpack Android source
+      - name: Unpack verified Android source
         shell: bash
         run: |
           set -euo pipefail
-          unzip -o -q DaggerfallMobile-GitHubActions-input-test-v5.zip -d .
+          unzip -oq DaggerfallMobile-GitHubActions-input-test-v5.zip -d .
           test -f settings.gradle
           test -f gradlew
           test -f app/build.gradle
+          # Known working baseline: v13. Do not load v14 WebView/gamepad optimizations.
           cp patches/login-fix-v12.js app/src/main/assets/login-fix.js
           python3 patches/android-v9.py
           python3 patches/android-v10.py
           python3 patches/android-v11.py
           python3 patches/android-v12.py
           python3 patches/android-v13.py
-          # Gameplay hot path: frame-coalesced touch IPC and cached gamepad objects.
-          cp patches/gamepad-v14.js app/src/main/assets/gamepad.js
-          python3 patches/login-performance-v14.py
-          python3 patches/android-performance-v14.py
+          python3 patches/android-v15-recovery.py
           mkdir -p tests
           cp patches/login-fix-v6.test.cjs tests/login-fix-v6.test.cjs
           chmod +x gradlew
-          echo 'Android source extracted successfully'
+          echo 'Recovered v13 startup path; added launcher icon and monotonic version.'
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-      - name: Configure Android SDK from GitHub runner
+      - name: Configure Android SDK
         shell: bash
         run: |
           set -euo pipefail
-          echo "ANDROID_HOME=${ANDROID_HOME:-$ANDROID_SDK_ROOT}" >> "$GITHUB_ENV"
-          SDK="${ANDROID_HOME:-$ANDROID_SDK_ROOT}"
-          echo "SDK directory: $SDK"
-          ls -la "$SDK/cmdline-tools" || true
-          "$SDK/cmdline-tools/latest/bin/sdkmanager" --version
-          yes | "$SDK/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+          SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT}}"
+          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
           "$SDK/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-35' 'build-tools;35.0.0' 'platform-tools'
       - uses: gradle/actions/setup-gradle@v4
-      - name: Verify fixed keyboard features
-        run: |
-          grep -q 'keyboardHost.addView(keyRow)' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
-          grep -q 'refreshKeycaps()' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
-          grep -q 'HapticFeedbackConstants.KEYBOARD_TAP' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
-          grep -q 'isFocusable=false' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
-      - name: Verify gameplay performance optimizations
-        shell: bash
+      - name: Verify launcher icon and v13 login
         run: |
           set -euo pipefail
-          grep -q 'Choreographer.getInstance().postFrameCallback' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
-          grep -q 'packet!=lastPacket' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
-          grep -q 'accountChanged(records)' app/src/main/assets/login-fix.js
-          grep -q 'nextScan=now+' app/src/main/assets/gamepad.js
+          grep -q 'android:icon="@drawable/ic_launcher"' app/src/main/AndroidManifest.xml
+          grep -q 'isFocusable=false' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
+          grep -q 'refreshKeycaps()' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
+          grep -q 'keyboardHost.addView(keyRow)' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
+          test -f app/src/main/res/drawable/ic_launcher.xml
+          node --check app/src/main/assets/login-fix.js
           node --check app/src/main/assets/gamepad.js
-          node --check app/src/main/assets/login-fix.js
-      - name: JavaScript tests
-        run: |
-          node --check app/src/main/assets/login-fix.js
           node --test tests/gamepad-shim.test.cjs tests/login-fix-v6.test.cjs
-      - name: Build debug APK
+      - name: Check release signing
+        shell: bash
+        env:
+          APK_SIGNING_KEY_B64: ${{ secrets.APK_SIGNING_KEY_B64 }}
+        run: |
+          if [[ -n "${APK_SIGNING_KEY_B64:-}" ]]; then
+            echo 'SIGNING_CONFIGURED=1' >> "$GITHUB_ENV"
+            echo 'A permanent release signing key is configured.'
+          else
+            echo 'SIGNING_CONFIGURED=0' >> "$GITHUB_ENV"
+            echo 'No permanent signing key: building a test-only debug APK.'
+          fi
+      - name: Build release APK
+        if: env.SIGNING_CONFIGURED == '1'
+        shell: bash
+        run: |
+          set -o pipefail
+          bash ./gradlew --no-daemon --stacktrace assembleRelease 2>&1 | tee android-build.log
+      - name: Sign release APK with permanent key
+        if: env.SIGNING_CONFIGURED == '1'
+        shell: bash
+        env:
+          APK_SIGNING_KEY_B64: ${{ secrets.APK_SIGNING_KEY_B64 }}
+        run: |
+          set -euo pipefail
+          KEY="$RUNNER_TEMP/android-private.pk8"
+          printf '%s' "$APK_SIGNING_KEY_B64" | base64 --decode > "$KEY"
+          test -s "$KEY"
+          SDK="$ANDROID_HOME"
+          APKSIGNER="$SDK/build-tools/35.0.0/apksigner"
+          UNSIGNED=app/build/outputs/apk/release/app-release-unsigned.apk
+          test -f "$UNSIGNED"
+          "$APKSIGNER" sign --key "$KEY" --cert signing/public-cert.pem --out app/build/outputs/apk/release/DaggerfallMobile-release.apk "$UNSIGNED"
+          "$APKSIGNER" verify --verbose --print-certs app/build/outputs/apk/release/DaggerfallMobile-release.apk
+          rm -f "$KEY"
+      - name: Build test-only debug APK
+        if: env.SIGNING_CONFIGURED != '1'
         shell: bash
         run: |
           set -o pipefail
           bash ./gradlew --no-daemon --stacktrace assembleDebug 2>&1 | tee android-build.log
-      - name: Upload debug APK
-        if: success()
+      - name: Upload updatable release APK
+        if: env.SIGNING_CONFIGURED == '1'
         uses: actions/upload-artifact@v4
         with:
-          name: DaggerfallMobile-debug-apk
+          name: DaggerfallMobile-release-apk
+          path: app/build/outputs/apk/release/DaggerfallMobile-release.apk
+          if-no-files-found: error
+      - name: Upload test-only APK (debug signing changes across runs)
+        if: env.SIGNING_CONFIGURED != '1'
+        uses: actions/upload-artifact@v4
+        with:
+          name: DaggerfallMobile-debug-test-only
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
-      - name: Upload build log on failure
+      - name: Upload compilation log on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:

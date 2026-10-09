@@ -24,6 +24,7 @@ jobs:
           python3 patches/android-v10.py
           python3 patches/android-v11.py
           python3 patches/android-v12.py
+          python3 patches/android-v13.py
           mkdir -p tests
           cp patches/login-fix-v6.test.cjs tests/login-fix-v6.test.cjs
           chmod +x gradlew
@@ -44,6 +45,12 @@ jobs:
           yes | "$SDK/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
           "$SDK/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-35' 'build-tools;35.0.0' 'platform-tools'
       - uses: gradle/actions/setup-gradle@v4
+      - name: Verify fixed keyboard features
+        run: |
+          grep -q 'keyboardHost.addView(keyRow)' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
+          grep -q 'refreshKeycaps()' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
+          grep -q 'HapticFeedbackConstants.KEYBOARD_TAP' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
+          grep -q 'isFocusable=false' app/src/main/java/dev/daggerfall/mobile/MainActivity.kt
       - name: JavaScript tests
         run: |
           node --check app/src/main/assets/login-fix.js

@@ -11,7 +11,7 @@ s=s.replace('  val keyRows=listOf(', '''  // The keyboard is a separate, permane
   }
   keyboardHost.addView(keyFeedback,LinearLayout.LayoutParams(-1,25.dp))
   val keyRows=listOf(''',1)
-s=s.replace('''   listOf("SHIFT","SPACE","_","-","!","?","BACK","NEXT")''','''   listOf("SHIFT","SYM","SPACE","BACK","NEXT")''',1)
+s=s.replace('''   listOf("SHIFT","SPACE","_","-","!","?","BACK","NEXT")''','''   listOf("SHIFT","SYM","SPACE","PASTE","BACK","NEXT")''',1)
 s=s.replace('''  var upper=false
   fun insertKey(key:String){''','''  var upper=false
   var symbolMode=false
@@ -33,6 +33,11 @@ s=s.replace('''  var upper=false
   fun insertKey(key:String){''',1)
 s=s.replace('''    "SHIFT"->upper=!upper''','''    "SHIFT"->{upper=!upper;refreshKeycaps()}''',1)
 s=s.replace('''    "NEXT"->{val index=fields.indexOf(e);pick(fields[(index+1)%fields.size])}''','''    "SYM"->{symbolMode=!symbolMode;refreshKeycaps()}
+    "PASTE"->{
+     val clip=(getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager).primaryClip
+     val txt=if(clip!=null&&clip.itemCount>0)clip.getItemAt(0).coerceToText(this).toString() else ""
+     if(txt.isNotEmpty())e.text.append(txt)
+    }
     "NEXT"->{val index=fields.indexOf(e);pick(fields[(index+1)%fields.size])}''',1)
 s=s.replace('''    else->{val value=when(key){"SPACE"->" ";else->if(upper)key.uppercase() else key}''','''    else->{val value=when(key){"SPACE"->" ";else->if(symbolMode&&key.length==1)symbolMap[key[0]]?.toString()?:key else if(upper)key.uppercase() else key}''',1)
 s=s.replace('''     setOnClickListener{insertKey(key);updateSelection()}''','''     isFocusable=false;isFocusableInTouchMode=false
@@ -58,10 +63,10 @@ s=s.replace('''     setOnClickListener{insertKey(key);updateSelection()}''',''' 
      }''',1)
 s=s.replace('''    keyRow.addView(btn,LinearLayout.LayoutParams(0,46.dp,''','''    keyRow.addView(btn,LinearLayout.LayoutParams(0,if(resources.configuration.orientation==android.content.res.Configuration.ORIENTATION_LANDSCAPE)29.dp else if(resources.displayMetrics.heightPixels<750.dp)36.dp else 43.dp,''',1)
 s=s.replace('''   body.addView(keyRow)''','''   keyboardHost.addView(keyRow)''',1)
-s=s.replace('''  // Paste using the Android clipboard, without showing the IME.
-  row(body,"Paste" to {''','''  refreshKeycaps()
-  // Paste without ever requesting an Android IME.
-  row(keyboardHost,"Paste" to {''',1)
+# Paste is a key in the permanently docked keyboard, not a separate scrolling row.
+paste_start=s.index('  // Paste using the Android clipboard, without showing the IME.')
+paste_end=s.index('  val status=TextView',paste_start)
+s=s[:paste_start]+'  refreshKeycaps()\n'+s[paste_end:]
 s=s.replace('''  row(body,"Submit" to {''','''  val actionHost=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL}
   row(actionHost,"Submit" to {''',1)
 s=s.replace('''  d.show()

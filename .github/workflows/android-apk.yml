@@ -19,9 +19,8 @@ jobs:
           test -f settings.gradle
           test -f gradlew
           test -f app/build.gradle
-          cp patches/login-fix-v6.js app/src/main/assets/login-fix.js
-          python3 patches/android-v7.py
-          python3 patches/android-v8.py
+          cp patches/login-fix-v9.js app/src/main/assets/login-fix.js
+          python3 patches/android-v9.py
           mkdir -p tests
           cp patches/login-fix-v6.test.cjs tests/login-fix-v6.test.cjs
           chmod +x gradlew
@@ -43,7 +42,9 @@ jobs:
           "$SDK/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-35' 'build-tools;35.0.0' 'platform-tools'
       - uses: gradle/actions/setup-gradle@v4
       - name: JavaScript tests
-        run: node --test tests/gamepad-shim.test.cjs tests/login-fix-v6.test.cjs
+        run: |
+          node --check app/src/main/assets/login-fix.js
+          node --test tests/gamepad-shim.test.cjs tests/login-fix-v6.test.cjs
       - name: Build debug APK
         shell: bash
         run: |
